@@ -27,6 +27,9 @@ router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
 router.get('/', (req, res) => {
   Users.get().then(data => {
     res.status(200).json(data);
+  })
+  .catch(err => {
+    res.status(500).json ({ error: "The users information could not be retrieved.."});
   });
 });
 
@@ -35,18 +38,38 @@ router.get('/:id', validateUserId, (req, res) => {
 });
 
 router.get('/:id/posts', validateUserId, (req, res) => {
-  const userId = req.params.id;
-  Users.getUserPosts(userId);
+	const userId = req.params.id;
+
+	Users.getUserPosts(userId)
+		.then(data => {
+			res.status(200).json(data);
+		})
+		.catch(err => {
+			res.status(500).json({ error: 'The users posts could not be retrieved.' });
+		});
 });
 
 router.delete('/:id', validateUserId, (req, res) => {
   const id = req.params.id;
-  Users.remove(id).then(data => {});
+  Users.remove(id)
+  .then(data => {
+    res.status(200).json({ message: "You have successfully deleted this user.."});
+  })
+  .catch(err => {
+    res.status(500).json({ error: "This user could not be deleted."});
+  });
 });
 
 router.put('/:id', validateUser, validateUserId, (req, res) => {
   const { id } = req.params;
   const changes = req.body;
+  Users.update(id, changes)
+    .then(data => {
+      res.status(200).json(changes);
+    })
+    .catch(err => {
+      res.status(500).json ({ error: "The post information could not be modified.."});
+    });
   // do your magic!
 });
 
@@ -60,7 +83,7 @@ function validateUserId(req, res, next) {
         console.log(user);
         next();
       } else {
-        res.status(404.json({ message: "User ID not found! "}));
+        res.status(404).json({ message: "User ID not found! "});
       }
     })
     .catch(err => {
